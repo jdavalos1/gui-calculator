@@ -5,8 +5,56 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Calculator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+        Title="Calculator" Height="510" Width="340">
+    <Grid x:Name="MainGrid" Background="DarkSlateGray" HorizontalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height = "*"/>
+        </Grid.RowDefinitions>
+        <!--Button portion of the calculator in a uniform manner-->
+        <DockPanel Height="140" VerticalAlignment="Top" LastChildFill="True">
+            <Button x:Name="History" DockPanel.Dock="Top" Height="35" Width="35" HorizontalAlignment="Right" Background="Transparent"/>
+            <Viewbox Stretch="Uniform">
+                <TextBox x:Name="Results" Text="0" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Right" Width="52" HorizontalAlignment="Right"/>
+            </Viewbox>
+        </DockPanel>
+        <UniformGrid x:Name="ButtonGrid" Margin="0,140,0,0" Rows="6" Columns="4" Width="Auto">
+            <!--Setup basic properties for each of the buttons-->
+            <UniformGrid.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontFamily" Value="Palatino Linotype"/>
+                    <Setter Property="Foreground" Value="Green"/>
+                    <Setter Property="Background" Value="Black"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                </Style>
+            </UniformGrid.Resources>
+            <Button Content="%"/>
+            <Button Content="CE" Click="ClearClick"/>
+            <Button Content="C"/>
+            <Button Content="Back"/>
+            <Button Content="1/x" Typography.Fraction="Slashed"/>
+            <Button Content="x&#x00B2;"/>
+            <Button Content="&#x00B2;&#8730;x"/>
+            <Button Content="&#0247;" FontSize="20"/>
+            <Button Content="7" Click="NumbClick"/>
+            <Button Content="8" Click="NumbClick"/>
+            <Button Content="9" Click="NumbClick"/>
+            <Button Content="&#0215;" FontSize="20"/>
+            <Button Content="6" Click="NumbClick"/>
+            <Button Content="5" Click="NumbClick"/>
+            <Button Content="4" Click="NumbClick"/>
+            <Button Content="-" FontSize="20"/>
+            <Button Content="1" Click="NumbClick"/>
+            <Button Content="2" Click="NumbClick"/>
+            <Button Content="3" Click="NumbClick"/>
+            <Button Content="+" FontSize="20"/>
+            <Button Content="+/-" Click="NegativeClick"/>
+            <Button Content="0" Click="NumbClick"/>
+            <Button Content="." FontSize="24"/>
+            <Button Content="=" FontSize="20"/>
+        </UniformGrid>
     </Grid>
 </Window>
