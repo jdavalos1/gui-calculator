@@ -33,26 +33,26 @@
                     <Setter Property="BorderThickness" Value="1"/>
                 </Style>
             </UniformGrid.Resources>
-            <Button Content="%"/>
+            <Button Content="%" Click="PercentClick"/>
             <Button Content="CE" Click="ClearClick"/>
-            <Button Content="C"/>
+            <Button Content="C" Click="ClearEverythingClick"/>
             <Button Content="Back"/>
             <Button Content="1/x" Typography.Fraction="Slashed"/>
             <Button Content="x&#x00B2;"/>
-            <Button Content="&#x00B2;&#8730;x"/>
-            <Button Content="&#0247;" FontSize="20" Click="DivideClick"/>
+            <Button Content="&#x00B2;&#8730;x" Click="SqrtClick"/>
+            <Button Content="&#0247;" FontSize="20" Click="BasicOprations" CommandParameter="{x:Static local:CalculatorFunctions+CalcState.div}"/>
             <Button Content="7" Click="NumbClick"/>
             <Button Content="8" Click="NumbClick"/>
             <Button Content="9" Click="NumbClick"/>
-            <Button Content="&#0215;" FontSize="20" Click="MultClick"/>
+            <Button Content="&#0215;" FontSize="20" Click="BasicOprations" CommandParameter="{x:Static local:CalculatorFunctions+CalcState.multi}"/>
             <Button Content="6" Click="NumbClick"/>
             <Button Content="5" Click="NumbClick"/>
             <Button Content="4" Click="NumbClick"/>
-            <Button Content="-" FontSize="20" Click="SubClick"/>
+            <Button Content="-" FontSize="20" Click="BasicOprations" CommandParameter="{x:Static local:CalculatorFunctions+CalcState.sub}"/>
             <Button Content="1" Click="NumbClick"/>
             <Button Content="2" Click="NumbClick"/>
             <Button Content="3" Click="NumbClick"/>
-            <Button Content="+" FontSize="20" Click="AddClick"/>
+            <Button Content="+" FontSize="20" Click="BasicOprations"  CommandParameter="{x:Static local:CalculatorFunctions+CalcState.add}"/>
             <Button Content="+/-" Click="NegativeClick"/>
             <Button Content="0" Click="NumbClick"/>
             <Button Content="." FontSize="24"/>
