@@ -62,6 +62,13 @@ namespace Calculator
                 Results.Text = Results.Text.Contains(NEGATIVERESULTS) ? Results.Text.Remove(0, 1) : Results.Text.Insert(0, NEGATIVERESULTS);
             }
         }
+        
+        public void SqrtClick(object sender, RoutedEventArgs e)
+        {
+            if (Results.Text.Contains(NEGATIVERESULTS))
+                Results.Text = "Invalid Input";
+            
+        }
 
         public void DivideClick(object sender, RoutedEventArgs e)
         {
@@ -118,9 +125,14 @@ namespace Calculator
             _state = 0;
         }
 
+        public void SqrtValue(float value)
+        {
+            CurrentResult = Convert.ToSingle(Math.Sqrt(value));
+            
+        }
         public void DivideValue(float value)
         {
-            if (CurrentResult == 0.0f)
+            if (_state == CalcState.none)
                 CurrentResult = value;
             else
                 CurrentResult /= value;
@@ -130,7 +142,7 @@ namespace Calculator
 
         public void MultiplyValue(float value)
         {
-            if (CurrentResult == 0.0f)
+            if (_state == CalcState.none)
                 CurrentResult = value;
             else
                 CurrentResult *= value;
@@ -140,7 +152,7 @@ namespace Calculator
 
         public void SubValue(float value)
         {
-            if (CurrentResult == 0.0f)
+            if (_state == CalcState.non)
                 CurrentResult = value;
 
             else
@@ -173,6 +185,8 @@ namespace Calculator
                 case CalcState.div:
                     CurrentResult /= value;
                     break;
+                case CalcState.none:
+                    break;
             }
 
             CurrentFuncQueue += value.ToString() + " = " + CurrentResult;
@@ -180,12 +194,42 @@ namespace Calculator
             _memory.Add(new Tuple<float, string>(CurrentResult, CurrentFuncQueue));
             CurrentFuncQueue = "";
             CurrentResult = 0.0f;
+            _state = CalcState.none;
             return _memory.Last().Item1;
         }
         
         public string CurrentFunction()
         {
             return _memory.Last().Item2;
+        }
+
+        /// <summary>
+        /// Perform on an operation with outliers such as inverse, sqr, sqrt, and %
+        /// </summary>
+        /// <param name="value"></param>
+        private void outlierOperation(float value)
+        {
+            if (_state == CalcState.none)
+            {
+                CurrentResult = value;
+                return;
+            }
+            switch (_state)
+            {
+                case CalcState.add:
+                    CurrentResult += value;
+                    break;
+                case CalcState.sub:
+                    CurrentResult -= value;
+                    break;
+                case CalcState.multi:
+                    CurrentResult *= value;
+                    break;
+                case CalcState.div:
+                    CurrentResult /= value;
+                    break;
+            }
+            _state = CalcState.none;
         }
 
         /// <summary>
@@ -197,7 +241,7 @@ namespace Calculator
             add,
             sub,
             div,
-            multi
+            multi,
         }
     }
 
