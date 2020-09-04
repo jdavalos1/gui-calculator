@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.DirectoryServices;
 using System.Linq;
 using System.Net;
@@ -20,6 +21,7 @@ namespace Calculator
     {
         private const string DEFAULTRESULTS = "0";
         private const string NEGATIVERESULTS = "-";
+        private const string DECIMALRESULTS = ".";
         private readonly CalculatorFunctions _calc;
         private bool _textBoxWritable = true;
 
@@ -53,7 +55,7 @@ namespace Calculator
         public void ClearEverythingClick(object sender, RoutedEventArgs e)
         {
             _calc.ClearCurrentOperations();
-            // Would need to clear out a potential text box with current equation
+            CurrentEquation.Text = "";
             Results.Text = DEFAULTRESULTS;
         }
 
@@ -85,6 +87,7 @@ namespace Calculator
             var value = Convert.ToSingle(Results.Text) * 0.01f;
             _calc.PercentValue(value);
             Results.Text = _calc.CurrentResult.ToString();
+            CurrentEquation.Text = _calc.CurrentFuncQueue;
             _textBoxWritable = false;
         }
         
@@ -100,6 +103,7 @@ namespace Calculator
             {
                 _calc.SqrtValue(Convert.ToSingle(Results.Text));
                 Results.Text = _calc.CurrentResult.ToString();
+                CurrentEquation.Text = _calc.CurrentFuncQueue;
                 _textBoxWritable = false;
             }
         }
@@ -109,6 +113,7 @@ namespace Calculator
             var value = Convert.ToSingle(Results.Text);
             _calc.SquareValue(value);
             Results.Text = _calc.CurrentResult.ToString();
+            CurrentEquation.Text = _calc.CurrentFuncQueue;
             _textBoxWritable = false;
         }
 
@@ -127,6 +132,7 @@ namespace Calculator
             {
                 _calc.InverseValue(rValue);
                 Results.Text = _calc.CurrentResult.ToString();
+                CurrentEquation.Text = _calc.CurrentFuncQueue;
                 _textBoxWritable = false;
             }
         }
@@ -147,8 +153,18 @@ namespace Calculator
             {
                 _calc.OperatePreviousResults(value, state);
                 Results.Text = _calc.CurrentResult.ToString();
+                CurrentEquation.Text = _calc.CurrentFuncQueue;
                 _textBoxWritable = false;
             }
+        }
+
+        public void DecimalClick(object sender, RoutedEventArgs e)
+        {
+            var currentResults = Results.Text;
+
+            if(currentResults.Contains(".")) return;
+
+            Results.Text += ".";
         }
 
         public void EqualClick(object sender, RoutedEventArgs e)
@@ -162,11 +178,14 @@ namespace Calculator
                 _textBoxWritable = false;
                 return;
             }
-
-            Results.Text = _calc.Equal(nextValue).ToString();
-            _textBoxWritable = false;
+            else
+            {
+                Results.Text = _calc.Equal(nextValue).ToString();
+                CurrentEquation.Text = _calc.CurrentFuncQueue;
+                _calc.ClearCurrentOperations();
+                _textBoxWritable = false;
+            }
         }
-        
     }
 
     public class CalculatorFunctions
@@ -175,6 +194,7 @@ namespace Calculator
         public CalcState State { get; private set; }
         public float CurrentResult { get; private set; }
         public string CurrentFuncQueue { get; private set; }
+        private string CurrentVar;
 
         public CalculatorFunctions()
         {
@@ -189,7 +209,7 @@ namespace Calculator
         /// <param name="value"></param>
         /// <param name="newState"></param>
         public void OperatePreviousResults(float value, CalcState newState)
-        {
+       {
             // If there was a previous operation then complete that first
             // e.g.  5 x --> 5 x 4 + we need to first do 5 x 4 then prepare
             // for the new state
@@ -199,18 +219,30 @@ namespace Calculator
             {
                 case CalcState.add:
                     AddValue(value);
+                    CurrentFuncQueue += CurrentVar;
+                    CurrentVar = "";
+                    AddSign(newState);
                     State = newState;
-                    break;
+                   break;
                 case CalcState.sub:
                     SubValue(value);
+                    CurrentFuncQueue += CurrentVar;
+                    CurrentVar = "";
+                    AddSign(newState);
                     State = newState;
                     break;
                 case CalcState.multi:
                     MultiplyValue(value);
+                    CurrentFuncQueue += CurrentVar;
+                    CurrentVar = "";
+                    AddSign(newState);
                     State = newState;
                     break;
                 case CalcState.div:
                     DivideValue(value);
+                    CurrentFuncQueue += CurrentVar;
+                    CurrentVar = "";
+                    AddSign(newState);
                     State = newState;
                     break;
                 case CalcState.none:
@@ -218,15 +250,23 @@ namespace Calculator
                     {
                         case CalcState.add:
                             AddValue(value);
+                            CurrentFuncQueue += CurrentVar + " + ";
+                            CurrentVar = "";
                             break;
                         case CalcState.sub:
                             SubValue(value);
+                            CurrentFuncQueue += CurrentVar + " - ";
+                            CurrentVar = "";
                             break;
                         case CalcState.multi:
                             MultiplyValue(value);
+                            CurrentFuncQueue += CurrentVar + " \u2715 ";
+                            CurrentVar = "";
                             break;
                         case CalcState.div:
                             DivideValue(value);
+                            CurrentFuncQueue += CurrentVar + " \u00F7 ";
+                            CurrentVar = "";
                             break;
                         case CalcState.outlier:
                             CurrentResult = value;
@@ -236,37 +276,95 @@ namespace Calculator
                     break;
                 case CalcState.outlier:
                     State = newState;
+                    if (newState != CalcState.outlier)
+                    {
+                        CurrentFuncQueue += CurrentVar;
+                        CurrentVar = "";
+                    }
+                    else
+                        CurrentResult = value;
                     break;
             }
         }
-        
+
+        /// <summary>
+        /// Appends a sign to the end of the current function queue.
+        /// </summary>
+        /// <param name="newState">Enum for the new state of the calculator</param>
+        private void AddSign(CalcState newState)
+        {
+            switch(newState)
+            {
+                case CalcState.add:
+                    CurrentFuncQueue += " + ";
+                    break;
+                case CalcState.sub:
+                    CurrentFuncQueue += " - ";
+                    break;
+                case CalcState.multi:
+                    CurrentFuncQueue += " \u2715 ";
+                    break;
+                case CalcState.div:
+                    CurrentFuncQueue += " \u00F7 ";
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Clears all current operations in the queue
+        /// </summary>
         public void ClearCurrentOperations()
         {
             CurrentResult = 0.0f;
             State = CalcState.none;
             CurrentFuncQueue = "";
+            CurrentVar = "";
         }
 
+        /// <summary>
+        /// Takes the inverse of the value then performs the previously called operation on it
+        /// </summary>
+        /// <param name="value">Value to apply inverse</param>
         public void InverseValue(float value)
         {
             var inverseValue = 1 / value;
+            // Need to see if we are using value or applying non operations to a value
+            // in order to properly write equation
+            if (State == CalcState.outlier)
+                CurrentVar = "1/(" + CurrentVar + ")";
+            else
+                CurrentVar = "1/(" + value + ")";
             OperatePreviousResults(inverseValue, CalcState.outlier);
         }
+        
         public void PercentValue(float value)
         {
             var percentage = CurrentResult * value;
+            CurrentVar = percentage.ToString();
             OperatePreviousResults(percentage, CalcState.outlier);
         }
 
         public void SqrtValue(float value)
         {
             var sqrtValue = Convert.ToSingle(Math.Sqrt(value));
+            // Need to see if we are using value or applying non operations to a value
+            // in order to properly write equation
+            if(State == CalcState.outlier)
+                CurrentVar = "sqrt(" + CurrentVar + ")";
+            else
+                CurrentVar = "sqrt(" + value + ")";
             OperatePreviousResults(sqrtValue, CalcState.outlier);
         }
         
         public void SquareValue(float value)
         {
             var sqValue = Convert.ToSingle(Math.Pow(value, 2));
+            if (State == CalcState.outlier)
+                CurrentVar = "sqr(" + CurrentVar + ")";
+            else
+                CurrentVar = "sqr(" + value + ")";
             OperatePreviousResults(sqValue, CalcState.outlier);
         }
 
@@ -276,8 +374,10 @@ namespace Calculator
                 CurrentResult = value;
             else
                 CurrentResult /= value;
+
+            if (string.IsNullOrEmpty(CurrentVar))
+                CurrentVar = value.ToString();
             State = CalcState.div;
-            CurrentFuncQueue += value.ToString() + " \u00F7 ";
         }
 
         public void MultiplyValue(float value)
@@ -286,8 +386,10 @@ namespace Calculator
                 CurrentResult = value;
             else
                 CurrentResult *= value;
+
+            if (string.IsNullOrEmpty(CurrentVar))
+                CurrentVar = value.ToString();
             State = CalcState.multi;
-            CurrentFuncQueue += value.ToString() + " \u00D7 ";
         }
 
         public void SubValue(float value)
@@ -298,26 +400,27 @@ namespace Calculator
             else
                 CurrentResult -= value;
 
+            if (string.IsNullOrEmpty(CurrentVar))
+                CurrentVar = value.ToString();
             State = CalcState.sub;
-            CurrentFuncQueue += value.ToString() + " - ";
         }
 
         public void AddValue(float value)
         {
             CurrentResult += value;
+            if(string.IsNullOrEmpty(CurrentVar))
+                CurrentVar = value.ToString();
             State = CalcState.add;
-            CurrentFuncQueue += value.ToString() + " + ";
         }
 
         public float Equal(float value) 
         {
+            // End of equation so we need to remove the extra operation at the end
+            // TODO
             OperatePreviousResults(value, CalcState.none);
-            CurrentFuncQueue += value.ToString() + " = " + CurrentResult;
+            CurrentFuncQueue += " = " + CurrentResult;
 
             _memory.Add(new Tuple<float, string>(CurrentResult, CurrentFuncQueue));
-            CurrentFuncQueue = "";
-            CurrentResult = 0.0f;
-            State = CalcState.none;
             return _memory.Last().Item1;
         }
         

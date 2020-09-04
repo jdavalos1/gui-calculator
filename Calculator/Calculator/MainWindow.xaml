@@ -15,12 +15,13 @@
         </Grid.RowDefinitions>
         <!--Button portion of the calculator in a uniform manner-->
         <DockPanel Height="140" VerticalAlignment="Top" LastChildFill="True">
-            <Button x:Name="History" DockPanel.Dock="Top" Height="35" Width="35" HorizontalAlignment="Right" Background="Transparent"/>
-            <Viewbox Stretch="Uniform" StretchDirection="Both">
-                <TextBox x:Name="Results" Text="0" Background="Transparent" BorderThickness="0" 
-                         HorizontalContentAlignment="Right" Width="52" HorizontalAlignment="Right"
-                         IsReadOnly="True"/>
-            </Viewbox>
+            <Button x:Name="History" DockPanel.Dock="Top" Height="35" Width="35" HorizontalAlignment="Right" 
+                    BorderThickness="0" Content="MEM" Background="DimGray"/>
+            <TextBox x:Name="CurrentEquation" DockPanel.Dock="Top" Height="25" BorderThickness="0"
+                     Background="Transparent" FontSize="15" IsReadOnly="True" HorizontalContentAlignment="Right"/>
+            <TextBox x:Name="Results" Text="0" Background="Transparent" BorderThickness="0" 
+                         HorizontalContentAlignment="Right" Width="Auto"
+                         IsReadOnly="True" FontSize="40"/>
         </DockPanel>
         <UniformGrid x:Name="ButtonGrid" Margin="0,140,0,0" Rows="6" Columns="4" Width="Auto">
             <!--Setup basic properties for each of the buttons-->
@@ -55,7 +56,7 @@
             <Button Content="+" FontSize="20" Click="BasicOprations"  CommandParameter="{x:Static local:CalculatorFunctions+CalcState.add}"/>
             <Button Content="+/-" Click="NegativeClick"/>
             <Button Content="0" Click="NumbClick"/>
-            <Button Content="." FontSize="24"/>
+            <Button Content="." FontSize="24" Click="DecimalClick"/>
             <Button Content="=" FontSize="20" Click="EqualClick"/>
         </UniformGrid>
     </Grid>
