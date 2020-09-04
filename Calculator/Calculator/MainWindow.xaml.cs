@@ -54,6 +54,7 @@ namespace Calculator
         {
             _calc.ClearCurrentOperations();
             // Would need to clear out a potential text box with current equation
+            Results.Text = DEFAULTRESULTS;
         }
 
         /// <summary>
@@ -81,7 +82,7 @@ namespace Calculator
         
         public void PercentClick(object sender, RoutedEventArgs e)
         {
-            var value = Convert.ToSingle(Results.Text);
+            var value = Convert.ToSingle(Results.Text) * 0.01f;
             _calc.PercentValue(value);
             Results.Text = _calc.CurrentResult.ToString();
             _textBoxWritable = false;
@@ -90,10 +91,41 @@ namespace Calculator
         public void SqrtClick(object sender, RoutedEventArgs e)
         {
             if (Results.Text.Contains(NEGATIVERESULTS))
+            {
                 Results.Text = "Invalid Input";
+                _calc.ClearCurrentOperations();
+                _textBoxWritable = false;
+            }
             else
             {
                 _calc.SqrtValue(Convert.ToSingle(Results.Text));
+                Results.Text = _calc.CurrentResult.ToString();
+                _textBoxWritable = false;
+            }
+        }
+
+        public void SqClick(object sender, RoutedEventArgs e)
+        {
+            var value = Convert.ToSingle(Results.Text);
+            _calc.SquareValue(value);
+            Results.Text = _calc.CurrentResult.ToString();
+            _textBoxWritable = false;
+        }
+
+        public void InverseClick(object sender, RoutedEventArgs e)
+        {
+            var rValue = Convert.ToSingle(Results.Text);
+
+            if (rValue == 0.0f)
+            {
+                Results.Text = "Cannot Divide By Zero";
+                _calc.ClearCurrentOperations();
+                _textBoxWritable = false;
+
+            }
+            else
+            {
+                _calc.InverseValue(rValue);
                 Results.Text = _calc.CurrentResult.ToString();
                 _textBoxWritable = false;
             }
@@ -110,12 +142,13 @@ namespace Calculator
                 Results.Text = "Cannot Divide By Zero";
                 _calc.ClearCurrentOperations();
                 _textBoxWritable = false;
-                return;
             }
-
-            _calc.OperatePreviousResults(value, state);
-            Results.Text = _calc.CurrentResult.ToString();
-            _textBoxWritable = false;
+            else
+            {
+                _calc.OperatePreviousResults(value, state);
+                Results.Text = _calc.CurrentResult.ToString();
+                _textBoxWritable = false;
+            }
         }
 
         public void EqualClick(object sender, RoutedEventArgs e)
@@ -206,7 +239,7 @@ namespace Calculator
                     break;
             }
         }
-
+        
         public void ClearCurrentOperations()
         {
             CurrentResult = 0.0f;
@@ -214,10 +247,15 @@ namespace Calculator
             CurrentFuncQueue = "";
         }
 
+        public void InverseValue(float value)
+        {
+            var inverseValue = 1 / value;
+            OperatePreviousResults(inverseValue, CalcState.outlier);
+        }
         public void PercentValue(float value)
         {
             var percentage = CurrentResult * value;
-            OutlierOperation(percentage);
+            OperatePreviousResults(percentage, CalcState.outlier);
         }
 
         public void SqrtValue(float value)
@@ -229,7 +267,7 @@ namespace Calculator
         public void SquareValue(float value)
         {
             var sqValue = Convert.ToSingle(Math.Pow(value, 2));
-            OutlierOperation(sqValue);
+            OperatePreviousResults(sqValue, CalcState.outlier);
         }
 
         public void DivideValue(float value)
@@ -274,23 +312,6 @@ namespace Calculator
         public float Equal(float value) 
         {
             OperatePreviousResults(value, CalcState.none);
-            switch (State)
-            {
-                case CalcState.add:
-                    CurrentResult += value;
-                    break;
-                case CalcState.sub:
-                    CurrentResult -= value;
-                    break;
-                case CalcState.multi:
-                    CurrentResult *= value;
-                    break;
-                case CalcState.div:
-                    CurrentResult /= value;
-                    break;
-                case CalcState.none:
-                    break;
-            }
             CurrentFuncQueue += value.ToString() + " = " + CurrentResult;
 
             _memory.Add(new Tuple<float, string>(CurrentResult, CurrentFuncQueue));
@@ -304,34 +325,7 @@ namespace Calculator
         {
             return _memory.Last().Item2;
         }
-
-        /// <summary>
-        /// Perform on an operation with outliers such as inverse, sqr, sqrt, and %
-        /// </summary>
-        /// <param name="value"></param>
-        private void OutlierOperation(float value)
-        {
-            switch (State)
-            {
-                case CalcState.add:
-                    CurrentResult += value;
-                    break;
-                case CalcState.sub:
-                    CurrentResult -= value;
-                    break;
-                case CalcState.multi:
-                    CurrentResult *= value;
-                    break;
-                case CalcState.div:
-                    CurrentResult /= value;
-                    break;
-                case CalcState.none:
-                    CurrentResult = value;
-                    break;
-            }
-            State = CalcState.none;
-        }
-
+        
         /// <summary>
         /// Used to determine the state of the calculator when equal is pressed
         /// </summary>
