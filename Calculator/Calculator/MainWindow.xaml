@@ -37,7 +37,7 @@
             <Button Content="%" Click="PercentClick"/>
             <Button Content="CE" Click="ClearClick"/>
             <Button Content="C" Click="ClearEverythingClick"/>
-            <Button Content="Back"/>
+            <Button Content="Back" Click="BackspaceClick"/>
             <Button Content="1/x" Typography.Fraction="Slashed" Click="InverseClick"/>
             <Button Content="x&#x00B2;" Click="SqClick"/>
             <Button Content="&#x00B2;&#8730;x" Click="SqrtClick"/>

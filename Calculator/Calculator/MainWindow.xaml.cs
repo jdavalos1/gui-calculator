@@ -46,7 +46,7 @@ namespace Calculator
                 Results.Text += buttonClick.Content.ToString();
             _textBoxWritable = true;
         }
-
+        
         /// <summary>
         /// Clear all current results and operations
         /// </summary>
@@ -67,6 +67,16 @@ namespace Calculator
         public void ClearClick(object sender, RoutedEventArgs e)
         {
             Results.Text = DEFAULTRESULTS;
+        }
+
+        public void BackspaceClick(object sender, RoutedEventArgs e)
+        {
+            if (Results.Text.Equals(DEFAULTRESULTS)) return;
+            Results.Text = Results.Text.Remove(Results.Text.Length - 1, 1);
+
+            if (string.IsNullOrEmpty(Results.Text))
+                Results.Text = DEFAULTRESULTS;
+
         }
 
         /// <summary>
@@ -162,9 +172,9 @@ namespace Calculator
         {
             var currentResults = Results.Text;
 
-            if(currentResults.Contains(".")) return;
+            if(currentResults.Contains(DECIMALRESULTS)) return;
 
-            Results.Text += ".";
+            Results.Text += DECIMALRESULTS;
         }
 
         public void EqualClick(object sender, RoutedEventArgs e)
@@ -190,10 +200,15 @@ namespace Calculator
 
     public class CalculatorFunctions
     {
+        // Used as meemory for calculator
         private readonly List<Tuple<float, string>> _memory;
+        // Used as the current state of the calculator
         public CalcState State { get; private set; }
+        // Used to hold the current results
         public float CurrentResult { get; private set; }
+        // Used as the current function being used
         public string CurrentFuncQueue { get; private set; }
+        // Current string housing current operations on a single value
         private string CurrentVar;
 
         public CalculatorFunctions()
