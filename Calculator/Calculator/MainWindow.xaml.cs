@@ -1,14 +1,4 @@
-﻿using Microsoft.Windows.Themes;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.DirectoryServices;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Policy;
-using System.Transactions;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -19,13 +9,16 @@ namespace Calculator
     /// </summary>
     public partial class MainWindow : Window
     {
+        // Represents constants in the code
         private const string DEFAULTRESULTS = "0";
         private const string NEGATIVERESULTS = "-";
         private const string DECIMALRESULTS = ".";
         private const int MAXIMUMRESULTSLENGTH = 15;
+        // Calculator class to handle calculations
         private readonly CalculatorFunctions _calc;
+        // Variable to determine if the Results box can be written too from scratch
         private bool _textBoxWritable = true;
-        private bool operationLock = false;
+
         public MainWindow()
         {
             _calc = new CalculatorFunctions();
@@ -40,7 +33,6 @@ namespace Calculator
         public void NumbClick(object sender, RoutedEventArgs e)
         {
             if (Results.Text.Length + 1 > MAXIMUMRESULTSLENGTH) return;
-            operationLock = false;
             var buttonClick = (sender as Button);
 
             if (!_textBoxWritable || Results.Text.ToString().Equals(DEFAULTRESULTS))
@@ -71,7 +63,12 @@ namespace Calculator
         {
             Results.Text = DEFAULTRESULTS;
         }
-
+        
+        /// <summary>
+        /// Logic for when back button is pressed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void BackspaceClick(object sender, RoutedEventArgs e)
         {
             if (Results.Text.Equals(DEFAULTRESULTS)) return;
@@ -95,6 +92,11 @@ namespace Calculator
             }
         }
         
+        /// <summary>
+        /// Logic for when percentage button is pressed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void PercentClick(object sender, RoutedEventArgs e)
         {
             var value = Convert.ToSingle(Results.Text) * 0.01f;
@@ -104,6 +106,11 @@ namespace Calculator
             _textBoxWritable = false;
         }
         
+        /// <summary>
+        /// Logic for when square root button is pressed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void SqrtClick(object sender, RoutedEventArgs e)
         {
             if (Results.Text.Contains(NEGATIVERESULTS))
@@ -121,6 +128,11 @@ namespace Calculator
             }
         }
 
+        /// <summary>
+        /// Logic for when square button is pressed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void SqClick(object sender, RoutedEventArgs e)
         {
             var value = Convert.ToSingle(Results.Text);
@@ -130,6 +142,11 @@ namespace Calculator
             _textBoxWritable = false;
         }
 
+        /// <summary>
+        /// Logic for when inverse button is pressed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void InverseClick(object sender, RoutedEventArgs e)
         {
             var rValue = Convert.ToSingle(Results.Text);
@@ -150,16 +167,14 @@ namespace Calculator
             }
         }
 
+        /// <summary>
+        /// Logic for when a basic operation button is pressed (e.g. + - / *)
+        /// </summary>
+        /// <param name="sender">Contains the parameter for the state of the calculator</param>
+        /// <param name="e"></param>
         public void BasicOprations(object sender, RoutedEventArgs e)
         {
             var state = (CalculatorFunctions.CalcState)(sender as Button).CommandParameter;
-            if (operationLock)
-            {
-                _calc.SwapSigns(state);
-                CurrentEquation.Text = _calc.CurrentFuncQueue;
-                return;
-            }
-
             var value = Convert.ToSingle(Results.Text);
 
             // Check if we are dividing by zero when new button is pressed
@@ -175,10 +190,14 @@ namespace Calculator
                 Results.Text = _calc.CurrentResult.ToString();
                 CurrentEquation.Text = _calc.CurrentFuncQueue;
                 _textBoxWritable = false;
-                operationLock = true;
             }
         }
 
+        /// <summary>
+        /// Logic for when a decimal number is required
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void DecimalClick(object sender, RoutedEventArgs e)
         {
             var currentResults = Results.Text;
@@ -188,6 +207,11 @@ namespace Calculator
             Results.Text += DECIMALRESULTS;
         }
 
+        /// <summary>
+        /// Logic for when the end of an equation
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void EqualClick(object sender, RoutedEventArgs e)
         {
             var nextValue = Convert.ToSingle(Results.Text);
@@ -207,6 +231,9 @@ namespace Calculator
         }
     }
 
+    /// <summary>
+    /// Wrapper class for strings in order for simple use of ListView
+    /// </summary>
     public class ResultsWrapper
     {
         public ResultsWrapper(string s)
@@ -216,6 +243,9 @@ namespace Calculator
         public string Results { get; }
     }
 
+    /// <summary>
+    /// Representing a calculator and its functionality
+    /// </summary>
     public class CalculatorFunctions
     {
         // Used as the current state of the calculator
@@ -300,19 +330,24 @@ namespace Calculator
                             break;
                         case CalcState.outlier:
                             CurrentResult = value;
+                            CurrentFuncQueue += CurrentVar;
                             State = newState;
                             break;
                     }      
                     break;
                 case CalcState.outlier:
                     State = newState;
-                    if (newState != CalcState.outlier)
+                    if (newState != CalcState.outlier && newState != CalcState.none)
                     {
                         CurrentFuncQueue += CurrentVar;
+                        AddSign(State);
                         CurrentVar = "";
                     }
                     else
+                    {
                         CurrentResult = value;
+                        CurrentFuncQueue = CurrentVar;
+                    }
                     break;
             }
         }
@@ -369,6 +404,10 @@ namespace Calculator
             OperatePreviousResults(inverseValue, CalcState.outlier);
         }
         
+        /// <summary>
+        /// Takes the percentage of the previous operations and does the operation needed
+        /// </summary>
+        /// <param name="value"></param>
         public void PercentValue(float value)
         {
             var percentage = CurrentResult * value;
@@ -376,6 +415,10 @@ namespace Calculator
             OperatePreviousResults(percentage, CalcState.outlier);
         }
 
+        /// <summary>
+        /// Takes the square root of the value passed in
+        /// </summary>
+        /// <param name="value"></param>
         public void SqrtValue(float value)
         {
             var sqrtValue = Convert.ToSingle(Math.Sqrt(value));
@@ -388,6 +431,10 @@ namespace Calculator
             OperatePreviousResults(sqrtValue, CalcState.outlier);
         }
         
+        /// <summary>
+        /// Takes the square of the value passed in
+        /// </summary>
+        /// <param name="value"></param>
         public void SquareValue(float value)
         {
             var sqValue = Convert.ToSingle(Math.Pow(value, 2));
@@ -398,6 +445,10 @@ namespace Calculator
             OperatePreviousResults(sqValue, CalcState.outlier);
         }
 
+        /// <summary>
+        /// Divides the previous operation's results with the value passed in
+        /// </summary>
+        /// <param name="value"></param>
         public void DivideValue(float value)
         {
             if (State == CalcState.none)
@@ -410,6 +461,10 @@ namespace Calculator
             State = CalcState.div;
         }
 
+        /// <summary>
+        /// Multiply previous operation's results with the value passed in
+        /// </summary>
+        /// <param name="value"></param>
         public void MultiplyValue(float value)
         {
             if (State == CalcState.none)
@@ -422,6 +477,10 @@ namespace Calculator
             State = CalcState.multi;
         }
 
+        /// <summary>
+        /// Subtracts the previous operation's results with the value passed in
+        /// </summary>
+        /// <param name="value"></param>
         public void SubValue(float value)
         {
             if (State == CalcState.none)
@@ -435,6 +494,10 @@ namespace Calculator
             State = CalcState.sub;
         }
 
+        /// <summary>
+        /// Adds the previous operation's results with the value passed in
+        /// </summary>
+        /// <param name="value"></param>
         public void AddValue(float value)
         {
             CurrentResult += value;
@@ -443,23 +506,21 @@ namespace Calculator
             State = CalcState.add;
         }
 
+        /// <summary>
+        /// Operates on the previous results with a new value based on the last 
+        /// state of the calculator
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public float Equal(float value) 
         {
-            // End of equation so we need to remove the extra operation at the end
-            // TODO
+            
             OperatePreviousResults(value, CalcState.none);
             CurrentFuncQueue += " = ";
 
             return CurrentResult;
         }
         
-        public void SwapSigns(CalcState value)
-        {
-            CurrentFuncQueue = CurrentFuncQueue.Remove(CurrentFuncQueue.Length - 3);
-            State = value;
-            AddSign(value);
-        }
-
         /// <summary>
         /// Used to determine the state of the calculator when equal is pressed
         /// </summary>
