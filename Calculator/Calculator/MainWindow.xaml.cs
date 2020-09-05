@@ -22,9 +22,10 @@ namespace Calculator
         private const string DEFAULTRESULTS = "0";
         private const string NEGATIVERESULTS = "-";
         private const string DECIMALRESULTS = ".";
+        private const int MAXIMUMRESULTSLENGTH = 15;
         private readonly CalculatorFunctions _calc;
         private bool _textBoxWritable = true;
-
+        private bool operationLock = false;
         public MainWindow()
         {
             _calc = new CalculatorFunctions();
@@ -38,6 +39,8 @@ namespace Calculator
         /// <param name="e"></param>
         public void NumbClick(object sender, RoutedEventArgs e)
         {
+            if (Results.Text.Length + 1 > MAXIMUMRESULTSLENGTH) return;
+            operationLock = false;
             var buttonClick = (sender as Button);
 
             if (!_textBoxWritable || Results.Text.ToString().Equals(DEFAULTRESULTS))
@@ -150,6 +153,13 @@ namespace Calculator
         public void BasicOprations(object sender, RoutedEventArgs e)
         {
             var state = (CalculatorFunctions.CalcState)(sender as Button).CommandParameter;
+            if (operationLock)
+            {
+                _calc.SwapSigns(state);
+                CurrentEquation.Text = _calc.CurrentFuncQueue;
+                return;
+            }
+
             var value = Convert.ToSingle(Results.Text);
 
             // Check if we are dividing by zero when new button is pressed
@@ -165,6 +175,7 @@ namespace Calculator
                 Results.Text = _calc.CurrentResult.ToString();
                 CurrentEquation.Text = _calc.CurrentFuncQueue;
                 _textBoxWritable = false;
+                operationLock = true;
             }
         }
 
@@ -181,6 +192,7 @@ namespace Calculator
         {
             var nextValue = Convert.ToSingle(Results.Text);
 
+            if(_calc.State == CalculatorFunctions.CalcState.none) return;
             if (_calc.State == CalculatorFunctions.CalcState.div && nextValue == 0.0f)
                 Results.Text = "Cannot Divide By Zero";
             else
@@ -188,7 +200,7 @@ namespace Calculator
                 var eqResult = _calc.Equal(nextValue);
                 Results.Text = eqResult.ToString();
                 CurrentEquation.Text = _calc.CurrentFuncQueue;
-                HistoryView.Items.Add(_calc.CurrentFuncQueue + eqResult.ToString());
+                HistoryView.Items.Add(new ResultsWrapper(_calc.CurrentFuncQueue + eqResult.ToString()));
             }
             _calc.ClearCurrentOperations();
             _textBoxWritable = false;
@@ -199,9 +211,9 @@ namespace Calculator
     {
         public ResultsWrapper(string s)
         {
-            results = s;
+            Results = s;
         }
-        public string results { get; }
+        public string Results { get; }
     }
 
     public class CalculatorFunctions
@@ -441,6 +453,13 @@ namespace Calculator
             return CurrentResult;
         }
         
+        public void SwapSigns(CalcState value)
+        {
+            CurrentFuncQueue = CurrentFuncQueue.Remove(CurrentFuncQueue.Length - 3);
+            State = value;
+            AddSign(value);
+        }
+
         /// <summary>
         /// Used to determine the state of the calculator when equal is pressed
         /// </summary>
