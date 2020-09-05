@@ -5,24 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Calculator"
         mc:Ignorable="d"
-        Title="Calculator" Height="510" Width="340">
+        Title="Calculator" Height="510" Width="550" ResizeMode="NoResize">
     <Grid x:Name="MainGrid" Background="DarkSlateGray" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="340"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height = "*"/>
         </Grid.RowDefinitions>
-        <!--Button portion of the calculator in a uniform manner-->
         <DockPanel Height="140" VerticalAlignment="Top" LastChildFill="True">
-            <Button x:Name="History" DockPanel.Dock="Top" Height="35" Width="35" HorizontalAlignment="Right" 
-                    BorderThickness="0" Content="MEM" Background="DimGray"/>
-            <TextBox x:Name="CurrentEquation" DockPanel.Dock="Top" Height="25" BorderThickness="0"
-                     Background="Transparent" FontSize="15" IsReadOnly="True" HorizontalContentAlignment="Right"/>
+
+            <TextBox x:Name="CurrentEquation" DockPanel.Dock="Top" Height="46" BorderThickness="0"
+                     Background="Transparent" FontSize="20" IsReadOnly="True" HorizontalContentAlignment="Right"/>
             <TextBox x:Name="Results" Text="0" Background="Transparent" BorderThickness="0" 
                          HorizontalContentAlignment="Right" Width="Auto"
-                         IsReadOnly="True" FontSize="40"/>
+                         IsReadOnly="True" FontSize="40" Height="95"/>
         </DockPanel>
+        <!--Button portion of the calculator in a uniform manner-->
         <UniformGrid x:Name="ButtonGrid" Margin="0,140,0,0" Rows="6" Columns="4" Width="Auto">
             <!--Setup basic properties for each of the buttons-->
             <UniformGrid.Resources>
@@ -59,5 +58,21 @@
             <Button Content="." FontSize="24" Click="DecimalClick"/>
             <Button Content="=" FontSize="20" Click="EqualClick"/>
         </UniformGrid>
+
+
+        <StackPanel Margin="340,0,-210,0" Width="Auto" Height="Auto">
+            <Label Content="History" Background="Transparent" FontSize="20"/>
+            <ListView Name="HistoryView" Height="456" Background="Transparent" BorderThickness="0">
+                <ListView.Resources>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="FontFamily" Value="Palatino Linotype"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </ListView.Resources>
+            </ListView>
+
+
+        </StackPanel>
+
     </Grid>
 </Window>

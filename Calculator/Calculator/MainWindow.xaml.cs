@@ -182,26 +182,30 @@ namespace Calculator
             var nextValue = Convert.ToSingle(Results.Text);
 
             if (_calc.State == CalculatorFunctions.CalcState.div && nextValue == 0.0f)
-            {
                 Results.Text = "Cannot Divide By Zero";
-                _calc.ClearCurrentOperations();
-                _textBoxWritable = false;
-                return;
-            }
             else
             {
-                Results.Text = _calc.Equal(nextValue).ToString();
+                var eqResult = _calc.Equal(nextValue);
+                Results.Text = eqResult.ToString();
                 CurrentEquation.Text = _calc.CurrentFuncQueue;
-                _calc.ClearCurrentOperations();
-                _textBoxWritable = false;
+                HistoryView.Items.Add(_calc.CurrentFuncQueue + eqResult.ToString());
             }
+            _calc.ClearCurrentOperations();
+            _textBoxWritable = false;
         }
+    }
+
+    public class ResultsWrapper
+    {
+        public ResultsWrapper(string s)
+        {
+            results = s;
+        }
+        public string results { get; }
     }
 
     public class CalculatorFunctions
     {
-        // Used as meemory for calculator
-        private readonly List<Tuple<float, string>> _memory;
         // Used as the current state of the calculator
         public CalcState State { get; private set; }
         // Used to hold the current results
@@ -214,7 +218,6 @@ namespace Calculator
         public CalculatorFunctions()
         {
             CurrentResult = 0.0f;
-            _memory = new List<Tuple<float, string>>();
             State = 0;
         }
        
@@ -433,15 +436,9 @@ namespace Calculator
             // End of equation so we need to remove the extra operation at the end
             // TODO
             OperatePreviousResults(value, CalcState.none);
-            CurrentFuncQueue += " = " + CurrentResult;
+            CurrentFuncQueue += " = ";
 
-            _memory.Add(new Tuple<float, string>(CurrentResult, CurrentFuncQueue));
-            return _memory.Last().Item1;
-        }
-        
-        public string CurrentFunction()
-        {
-            return _memory.Last().Item2;
+            return CurrentResult;
         }
         
         /// <summary>
